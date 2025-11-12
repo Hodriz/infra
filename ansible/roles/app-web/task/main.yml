@@ -1,0 +1,11 @@
+---
+- name: Criar container supremo-web
+  community.docker.docker_container:
+    name: supremo-web
+    image: "{{ docker_web_image }}"
+    restart_policy: always
+    ports:
+      - "8080:8080"
+    env:
+      NODE_ENV: production
+      API_URL: "http://localhost:3000"

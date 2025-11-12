@@ -1,0 +1,72 @@
+---
+- name: Remover repositório e chaves antigas do Docker
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/docker.list
+    - /etc/apt/keyrings/docker.gpg
+    - /usr/share/keyrings/docker-archive-keyring.gpg
+  ignore_errors: yes
+
+- name: Instalar dependências necessárias para adicionar repositórios
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - software-properties-common
+    state: present
+
+- name: Criar diretório de keyrings
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Baixar e converter chave GPG oficial do Docker
+  shell: |
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  args:
+    creates: /etc/apt/keyrings/docker.gpg
+
+- name: Garantir permissões corretas na chave
+  file:
+    path: /etc/apt/keyrings/docker.gpg
+    mode: '0644'
+
+- name: Detectar codinome do Ubuntu 
+  command: lsb_release -cs
+  register: ubuntu_codename
+  changed_when: false
+
+- name: Adicionar repositório oficial do Docker
+  copy:
+    dest: /etc/apt/sources.list.d/docker.list
+    content: |
+      deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable
+
+- name: Atualizar cache apt (agora com repositório e chave válidos)
+  apt:
+    update_cache: yes
+
+- name: Instalar Docker e Docker Compose Plugin
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+
+- name: Instalar Docker Compose plugin
+  apt:
+    name: docker-compose-plugin
+    state: present
+
+- name: Garantir que o Docker está rodando
+  service:
+    name: docker
+    state: started
+    enabled: yes
