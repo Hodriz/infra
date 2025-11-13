@@ -3,18 +3,17 @@
   file:
     path: /opt/app
     state: directory
-    
+
 - name: Copiar chave do serviço Google Cloud
   copy:
     src: files/gcloud-key.json
     dest: /opt/app/gcloud-key.json
     mode: '0600'
 
-- name: Autenticar no Google Artifact Registry
-  command: >
-    gcloud auth configure-docker southamerica-east1-docker.pkg.dev -q
-  environment:
-    GOOGLE_APPLICATION_CREDENTIALS: /opt/app/gcloud-key.json
+# 🚀 Autenticar no Google Artifact Registry (sem instalar SDK)
+- name: Autenticar no Google Artifact Registry (sem SDK)
+  shell: |
+    cat /opt/app/gcloud-key.json | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
   args:
     creates: /root/.docker/config.json
 
@@ -31,9 +30,8 @@
           restart: always
           environment:
             - ASPNETCORE_URLS=http://0.0.0.0:8080
-           labels:
+          labels:
             - "com.centurylinklabs.watchtower.enable=true"
-
 
         supremo-web:
           image: {{ docker_image_web }}
@@ -68,10 +66,9 @@
           volumes:
             - /var/run/docker.sock:/var/run/docker.sock
           environment:
-            - WATCHTOWER_CLEANUP=true           # remove imagens antigas
-            - WATCHTOWER_POLL_INTERVAL=300      # verifica a cada 5 minutos (300s)
-            - WATCHTOWER_LABEL_ENABLE=true      # atualiza apenas containers com label watchtower.enable=true
+            - WATCHTOWER_CLEANUP=true
             - WATCHTOWER_POLL_INTERVAL=3600
+            - WATCHTOWER_LABEL_ENABLE=true
 
 - name: Subir containers com Watchtower
   command: docker compose -f /opt/app/docker-compose.yml up -d
