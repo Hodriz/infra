@@ -1,0 +1,79 @@
+---
+- name: Criar pasta do app
+  file:
+    path: /opt/app
+    state: directory
+    
+- name: Copiar chave do serviço Google Cloud
+  copy:
+    src: files/gcloud-key.json
+    dest: /opt/app/gcloud-key.json
+    mode: '0600'
+
+- name: Autenticar no Google Artifact Registry
+  command: >
+    gcloud auth configure-docker southamerica-east1-docker.pkg.dev -q
+  environment:
+    GOOGLE_APPLICATION_CREDENTIALS: /opt/app/gcloud-key.json
+  args:
+    creates: /root/.docker/config.json
+
+- name: Criar docker-compose.yml com Watchtower
+  copy:
+    dest: /opt/app/docker-compose.yml
+    content: |
+      version: "3"
+      services:
+        supremo-api:
+          image: {{ docker_image }}
+          ports:
+            - "3000:8080"
+          restart: always
+          environment:
+            - ASPNETCORE_URLS=http://0.0.0.0:8080
+           labels:
+            - "com.centurylinklabs.watchtower.enable=true"
+
+
+        supremo-web:
+          image: {{ docker_image_web }}
+          ports:
+            - "8080:8080"
+          restart: always
+          labels:
+            - "com.centurylinklabs.watchtower.enable=true"
+        
+        integrador:
+          image: {{ docker_image_integrador }}
+          restart: always
+          depends_on:
+            - supremo-api
+            - supremo-web
+          environment:
+            - NODE_ENV=production
+            - TENANT=marimel
+            - DB=prod-link-marimel
+            - DB_USERNAME=postgres
+            - DB_PASSWORD=pchp@1990
+            - DB_HOST=34.70.238.171
+            - DB_PORT=5432
+            - API_URL=http://supremo-api:8080
+            - WEB_URL=http://supremo-web:8080
+          labels:
+            - "com.centurylinklabs.watchtower.enable=true"
+          
+        watchtower:
+          image: containrrr/watchtower
+          restart: always
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+          environment:
+            - WATCHTOWER_CLEANUP=true           # remove imagens antigas
+            - WATCHTOWER_POLL_INTERVAL=300      # verifica a cada 5 minutos (300s)
+            - WATCHTOWER_LABEL_ENABLE=true      # atualiza apenas containers com label watchtower.enable=true
+            - WATCHTOWER_POLL_INTERVAL=3600
+
+- name: Subir containers com Watchtower
+  command: docker compose -f /opt/app/docker-compose.yml up -d
+  args:
+    chdir: /opt/app
