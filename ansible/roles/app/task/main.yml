@@ -51,8 +51,8 @@
             - supremo-web
           environment:
             - NODE_ENV=production
-            - TENANT=limaneto
-            - DB=prod-link-limaneto
+            - TENANT=marimel
+            - DB=prod-link-marimel
             - DB_USERNAME=postgres
             - DB_PASSWORD=pchp@1990
             - DB_HOST=34.70.238.171

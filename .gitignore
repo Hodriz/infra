@@ -1,1 +1,4 @@
 ansible/roles/app/files/gcloud-key.json
+terraform.tfstate
+terraform.tfstate.backup
+

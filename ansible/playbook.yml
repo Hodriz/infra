@@ -1,0 +1,19 @@
+---
+- name: Configurar servidor da aplicação
+  hosts: hetzner
+  become: true
+
+  vars:
+    docker_user: "rodrigodebiasiborghi"
+    docker_image: "us-central1-docker.pkg.dev/integrador-421417/pchelp-apps/supremo-api/supremo-api:2.2.13"
+    docker_image_web: "us-central1-docker.pkg.dev/integrador-421417/pchelp-apps/supremo-web/supremo-web:1.9.0"
+    docker_image_integrador: "us-central1-docker.pkg.dev/integrador-421417/pchelp-apps/link-api/link-api:2.1.5"
+    domain_name: "borghidevops.site"
+    email_ssl: "rodrigo.debiasiborghi@gmail.com"
+
+
+  roles:
+    - { role: docker, tags: ['docker'] }
+    - { role: nginx, tags: ['nginx'] }
+    - { role: app, tags: ['app'] }
+    - { role: portainer, tags: ['portainer'] }
