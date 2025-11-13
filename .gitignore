@@ -1,4 +1,20 @@
 ansible/roles/app/files/gcloud-key.json
 terraform.tfstate
 terraform.tfstate.backup
+.terraform
+.terraform.lock.hcl
+.terraform.tfstate
+.terraform.tfstate.backup
 
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.backup
+**/.terraform.tfstate.lock.info
+
+# Ansible
+**/*.retry
+
+# General
+**/.DS_Store
+**/Thumbs.db
