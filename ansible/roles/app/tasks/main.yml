@@ -27,11 +27,20 @@
           image: {{ docker_image }}
           ports:
             - "3000:8080"
-          restart: always
-          environment:
-            - ASPNETCORE_URLS=http://0.0.0.0:8080
+          restart: always           
           labels:
             - "com.centurylinklabs.watchtower.enable=true"
+          environment:
+            - ASPNETCORE_URLS=http://0.0.0.0:8080
+            - NODE_ENV=production
+            - TENANT=marimel
+            - DB=adriana_personnalite
+            - DB_USERNAME=_adriana
+            - DB_PASSWORD=adriana12345
+            - DB_HOST=pchelp.servehttp.com
+            - DB_PORT=5432
+            - API_URL=http://supremo-api:8080
+            - WEB_URL=http://supremo-web:8080
 
         supremo-web:
           image: {{ docker_image_web }}
@@ -43,22 +52,25 @@
         
         integrador:
           image: {{ docker_image_integrador }}
+          ports:
+            - "3001:3000"
           restart: always
           depends_on:
             - supremo-api
             - supremo-web
+          labels:
+            - "com.centurylinklabs.watchtower.enable=true"
           environment:
+            - ASPNETCORE_URLS=http://0.0.0.0:8080
             - NODE_ENV=production
             - TENANT=marimel
             - DB=prod-link-marimel
             - DB_USERNAME=postgres
-            - DB_PASSWORD=pchp@1990
+            - DB_PASSWORD="pchp@1990"
             - DB_HOST=34.70.238.171
             - DB_PORT=5432
             - API_URL=http://supremo-api:8080
             - WEB_URL=http://supremo-web:8080
-          labels:
-            - "com.centurylinklabs.watchtower.enable=true"
           
         watchtower:
           image: containrrr/watchtower

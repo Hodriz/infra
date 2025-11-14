@@ -3,8 +3,10 @@ terraform init
 terraform plan
 terraform apply -auto-approve
 
-colcocar o nome da chave ssh que foi anteriormente salvo no painel da hetzner 
+colococar o nome da chave ssh que foi anteriormente salvo no painel da hetzner 
 #https://console.hetzner.com/projects/3593429/security/sshkeys
+
+colocar a chave de acesso do google (gcloud-key.json) na pasta ansible/roles/app/files
 
 se for a segunda vez que sua esse script terá que deletar a regra de firewall pois não se é aceito regras com o mesmo nome
 deve se também habilitar a porta 21 se for usar protocolo ftp
@@ -12,7 +14,8 @@ deve se também habilitar a porta 21 se for usar protocolo ftp
 
 # Gerar arquivo de inventário do Ansible
 echo "[hetzner]" > ../ansible/inventory.ini
-echo "$(terraform output -raw server_ip) ansible_user=root ansible_ssh_private_key_file=~/.ssh/id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' >> ../ansible/inventory.ini
+
+echo "$(terraform output -raw server_ip) ansible_user=root ansible_ssh_private_key_file=~/.ssh/id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> ../ansible/inventory.ini
 
 cd ../ansible
 ansible-playbook -i inventory.ini playbook.yml
